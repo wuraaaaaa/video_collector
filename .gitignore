@@ -1,0 +1,7 @@
+.vscode/
+.env
+go.sum
+*.exe
+*.exe~
+*.xml
+*.txt
