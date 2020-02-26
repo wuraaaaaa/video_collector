@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"video_collector/model"
 
 	"log"
@@ -22,8 +23,8 @@ func main() {
 	model.DB.Table("Videolists").Count(&beforcount)
 	log.Println("pagecount = ", pagecount, "---recordcount: ", recordcount)
 	t1 := time.Now()
-
-	pool := pool.New(8, pagecount)
+	PS, _ := strconv.Atoi(os.Getenv("POOL_SIZE"))
+	pool := pool.New(PS, pagecount)
 	for i := 0; i <= pagecount; i++ {
 		pool.Run(func() {
 
