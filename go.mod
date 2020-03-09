@@ -8,6 +8,8 @@ require (
 	github.com/bricdu/pool v0.0.0-20200226094910-642a1410f7e6
 	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
+	github.com/panjf2000/ants v1.3.0
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+	gopkg.in/go-playground/pool.v3 v3.1.1
 )

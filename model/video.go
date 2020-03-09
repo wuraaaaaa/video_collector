@@ -26,6 +26,7 @@ type Videolist struct {
 	Director string
 	Dd       string `gorm:"type:longtext;"`
 	Des      string `gorm:"type:text;"`
+	Source   string
 }
 
 //VideoClass VideoClass
@@ -38,6 +39,7 @@ type VideoClass struct {
 //Getlist 获取视频分类
 func Getlist() {
 	url := os.Getenv("WEB_URL")
+	log.Println("url: ", url)
 	//log.Println(url)
 
 	res, err := http.Get(url)
@@ -59,10 +61,10 @@ func Getlist() {
 
 	class := rss.SelectElement("class")
 	for _, ty := range class.SelectElements("ty") {
-		id, _ := strconv.ParseInt(ty.SelectAttrValue("id", "unknown"), 10, 64)
+		//id, _ := strconv.ParseInt(ty.SelectAttrValue("id", "unknown"), 10, 64)
 		name := ty.Text()
 		VideoClass := VideoClass{
-			ID:    id,
+			//ID:    id,
 			Type:  name,
 			Count: 0,
 		}
@@ -83,8 +85,10 @@ func Getlist() {
 }
 
 //Getvideos 获取视频详情
-func Getvideos(page int) {
-	url := os.Getenv("WEB_URL") + "?ac=videolist&ct=1" + "&pg=" + strconv.Itoa(page+1)
+func Getvideos(i interface{}) {
+	page := i.(int)
+	rootURL := os.Getenv("WEB_URL")
+	url := rootURL + "?ac=videolist&ct=1" + "&pg=" + strconv.Itoa(page+1)
 
 	res, err := http.Get(url)
 
@@ -117,8 +121,9 @@ func Getvideos(page int) {
 		director := video.SelectElement("director")
 		dl := video.SelectElement("dl")
 		dd := dl.SelectElement("dd")
-		des := video.SelectElement("des")
 
+		des := video.SelectElement("des")
+		Videotemp := Videolist{}
 		Videolist := Videolist{
 			Name:     name.Text(),
 			Last:     lasttime.Unix(),
@@ -131,10 +136,12 @@ func Getvideos(page int) {
 			Director: director.Text(),
 			Dd:       dd.Text(),
 			Des:      des.Text(),
+			Source:   rootURL,
 		}
 		videoname := Videolist.Name
-
-		err := DB.Where("name=?", videoname).Find(&Videolist).Error
+		//log.Println(Videolist.Name)
+		//TODO 时间戳判断更新
+		err := DB.Where("name=?", videoname).First(&Videotemp).Error
 		if err != nil {
 			saveerr := DB.Save(&Videolist).Error
 			if saveerr == nil {
@@ -142,6 +149,14 @@ func Getvideos(page int) {
 
 			} else {
 				log.Println(string(Videolist.Name), saveerr)
+			}
+		} else {
+			if Videotemp.Last != Videolist.Last {
+				updateerr := DB.Model(&Videotemp).Update("dd", dd.Text()).Error
+				updateerr = DB.Model(&Videotemp).Update("last", lasttime.Unix()).Error
+				if updateerr == nil {
+					log.Println(videoname, "   UPDATE")
+				}
 			}
 		}
 
